@@ -4,7 +4,7 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 
 const app = express();
-const port = process.env.PORT || 80;
+const port = process.env.PORT || process.env.RAILWAY_ENVIRONMENT || 8080;
 
 const allowedOrigins = [
   "https://jobfinder-nu-virid.vercel.app",
@@ -112,6 +112,6 @@ app.post("/login", async (req, res) => {
 });
 
 // Start server
-app.listen(port, "0.0.0.0", () => {
+app.listen(port, () => {
   console.log(`✅ Server listening on port ${port}`);
 });
