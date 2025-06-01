@@ -6,17 +6,20 @@ const bcrypt = require("bcrypt");
 const app = express();
 const port = process.env.PORT || 80;
 
-const allowedOrigins = [
-  "https://jobfinder-nu-virid.vercel.app/",
-  "http://localhost:3000"
-];
-
 app.use(cors({
   origin: allowedOrigins,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true
 }));
-app.use(express.json());
+
+// 🔧 Add manual headers for debugging
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://jobfinder-nu-virid.vercel.app");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
 
 // PostgreSQL connection
 const db = new Pool({
