@@ -4,16 +4,16 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 80;
 
 app.use(cors());
 app.use(express.json());
 
-
+// PostgreSQL connection
 const db = new Pool({
-  connectionString: process.env.DATABASE_URL ,
+  connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false, 
+    rejectUnauthorized: false,
   },
 });
 
@@ -24,24 +24,28 @@ db.query("SELECT 1")
 
 // Signup Route
 app.post("/signup", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { username, email, password } = req.body;
 
-  if (!name || !email || !password) {
+  if (!username || !email || !password) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
   try {
-    // Check if email already exists
-    const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-    if (result.rows.length > 0) {
-      return res.status(409).json({ message: "Email already registered" });
+    // Check if email or username already exists
+    const existingUser = await db.query(
+      "SELECT * FROM users WHERE email = $1 OR username = $2",
+      [email, username]
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({ message: "Email or username already taken" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await db.query(
-      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3)",
-      [name, email, hashedPassword]
+      "INSERT INTO users (username, email, password) VALUES ($1, $2, $3)",
+      [username, email, hashedPassword]
     );
 
     res.status(201).json({ message: "User registered successfully" });
@@ -77,8 +81,9 @@ app.post("/login", async (req, res) => {
       message: "Login successful",
       user: {
         id: user.id,
-        name: user.name,
+        username: user.username,
         email: user.email,
+        created_at: user.created_at,
       },
     });
   } catch (error) {
