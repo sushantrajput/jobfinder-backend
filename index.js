@@ -6,7 +6,16 @@ const bcrypt = require("bcrypt");
 const app = express();
 const port = process.env.PORT || 80;
 
-app.use(cors());
+const allowedOrigins = [
+  "https://jobfinder-nu-virid.vercel.app/",
+  "http://localhost:3000"
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true
+}));
 app.use(express.json());
 
 // PostgreSQL connection
@@ -24,7 +33,8 @@ db.query("SELECT 1")
 
 // Signup Route
 app.post("/signup", async (req, res) => {
-  const { username, email, password } = req.body;
+  const { name, email, password } = req.body;
+  const username = name;
 
   if (!username || !email || !password) {
     return res.status(400).json({ message: "All fields are required" });
