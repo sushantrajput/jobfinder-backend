@@ -6,13 +6,18 @@ const bcrypt = require("bcrypt");
 const app = express();
 const port = process.env.PORT || 80;
 
+const allowedOrigins = [
+  "https://jobfinder-nu-virid.vercel.app",
+  "http://localhost:3000"
+];
+
 app.use(cors({
   origin: allowedOrigins,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true
 }));
 
-// 🔧 Add manual headers for debugging
+// 🔧 Add manual headers for debugging (optional, remove later)
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "https://jobfinder-nu-virid.vercel.app");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -20,6 +25,8 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Credentials", "true");
   next();
 });
+
+app.use(express.json());
 
 // PostgreSQL connection
 const db = new Pool({
@@ -44,7 +51,6 @@ app.post("/signup", async (req, res) => {
   }
 
   try {
-    // Check if email or username already exists
     const existingUser = await db.query(
       "SELECT * FROM users WHERE email = $1 OR username = $2",
       [email, username]
